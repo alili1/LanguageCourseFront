@@ -1,15 +1,27 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div>
+    <img alt="Vue logo" src="./assets/logo.png">
+    <TestDownloader 
+      v-for="msg in messages"
+      v-bind:key="msg.id"
+      v-bind:title="msg.title"
+    />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import TestDownloader from './components/TestDownloader.vue'
 export default {
   name: 'App',
+  data () {
+    return {
+      messages: [
+        {id: 1, title: 'Trying to prevent XSS attack'}
+      ]
+    }
+  },
   components: {
-    HelloWorld
+    TestDownloader
   }
 }
 </script>
