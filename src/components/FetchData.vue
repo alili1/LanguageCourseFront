@@ -1,54 +1,41 @@
 <template> 
-    <div v-if="!this.data">Loading...</div>
-    <pre v-else><span v-html="this.data"></span></pre>
+    <div v-if="!this.allData.htmlData">Loading...</div>
+    <pre v-else>
+        <span v-html="this.allData.htmlData"></span>
+    </pre>
 </template>
 
 <script>
+import { sanitize } from 'js-sanitizer';
 import { fetchMessage } from '../services/fetchers'
 
   export default {
-
     data() {
       return {
-        data: null,
+        allData: {
+            jsData: null,
+            htmlData: null
+        }
       };
     },
     async created() {
         try {
-            this.data = await fetchMessage().then(msg => msg.jsMessage)
-            // .then(() => {
-            //     this.executeScript();
-            // });
+            await fetchMessage().then((msg) => {
+                this.allData.htmlData = msg.htmlMessage
+                this.allData.jsData = msg.jsMessage
+            }).then(this.loadScripts)
         }
         catch(error){
-            this.data = 'server error :('
+            this.allData.htmlData = 'server error :('
         }
-        // this.loadScripts()
-        // .then(() => {
-        //     this.executeScript();
-        // });
-        console.log(this.data)
     },
     methods: {
         loadScripts() {
-            return new Promise(resolve => {
-                let scriptEl = document.createElement("script");
-                scriptEl.src = this.data;
-                scriptEl.type = "text/javascript";
-                console.log(scriptEl)
-                // Attach script to head
-                document.getElementsByTagName("head")[0].appendChild(scriptEl); 
-                // Wait for tag to load before promise is resolved     
-                scriptEl.addEventListener('load',() => {
-                    resolve();
-                });
-            });
-        },
-        // executeScript() {
-        //     // remove script tags from string (this has been declared globally)
-        //     let script = string.replace(/<\/?script>/g,"")
-        //     eval(script)
-        // }
+            var s = document.createElement('script');
+            s.text = this.allData.jsData
+            document.getElementsByTagName('head')[0].appendChild(sanitize(s));
+            //document.getElementsByTagName('head')[0].appendChild(s);
+        }
     },
     // methods: {
     //   async fetchData() {      
@@ -61,7 +48,10 @@ import { fetchMessage } from '../services/fetchers'
     // },
     computed:{
         cleanMessage() {
-            return this.$sanitize(this.data);
+            return this.$sanitize(this.allData.htmlData);
+        },
+        cleanJs() {
+           return sanitize(this.allData.jsData);
         }
     }
   };
